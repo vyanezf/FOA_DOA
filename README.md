@@ -26,12 +26,12 @@ A multi-layer perceptron (MLP) for estimating sound source direction from First-
 │   └── nn7.gendsp          # Max/MSP gen~ patch for real-time feature computation
 ```
 
-## Workflow overview
+## Workflow overview for training on Ambix files
 
 There are three independent use cases. **You do not need to complete all of them** — start from whichever step suits your goal:
 
 ```
-[Raw audio] ──(1)──▶ [Feature CSVs] ──(2)──▶ [model.pt] ──(3)──▶ [FOAPred.ts] ──▶ Max/MSP
+[Ambix FOA stream] ──(1)──▶ [Feature CSVs] ──(2)──▶ [model.pt] ──(3)──▶ [FOAPred.ts] ──▶ Max/MSP
                           ↑                        ↑                    ↑
                     already in repo          skip if using         already in
                     (step 1 optional)        Max/FOAPred.ts         Max/ folder
@@ -83,7 +83,7 @@ This overwrites the CSVs in `features/` with freshly computed values.
 
 ---
 
-## Step 2 — Training _(optional)_
+## Step 2 — Training on the Dataset_(optional)_
 
 Trains directly from the pre-extracted feature CSVs — **no audio files needed**.
 
@@ -124,17 +124,17 @@ Place the resulting `FOAPred.ts` in the nn_tilde models directory:
 
 ## Using in Max/MSP
 
-Open `Max/Example.maxpat`. The patch expects a **live First-Order Ambisonics stream in AmbiX format** (channel order: W, X, Y, Z) at 48 kHz as input. The `nn7.gendsp` gen~ subpatcher computes the 12 acoustic features in real time and feeds them into `[nn~ FOAPred forward]`, which outputs 18 prediction values (12 azimuth + 3 elevation + 3 diffuseness logits).
+Open `Max/Example.maxpat`. The patch expects a **First-Order Ambisonics stream in AmbiX format** (channel order: W, Y, Z, X) at 48 kHz as input. The `nn7.gendsp` gen~ subpatcher computes the 12 acoustic features in real time and feeds them into `[nn~ FOAPred forward 512]`, which outputs 18 prediction values (12 azimuth + 3 elevation + 3 diffuseness logits).
 
 Load the model with:
 ```
-[nn~ FOAPred forward]
+[nn~ FOAPred forward 512]
 ```
 
 
 ## Inputs and features
 
-The model takes 12 features computed from a 2-second FOA window (W, X, Y, Z channels, 48 kHz, AmbiX format):
+The model takes 12 features computed from a 2-second FOA window (W, Y, Z, X channels, 48 kHz, AmbiX format):
 
 | Feature | Description |
 |---|---|
