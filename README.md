@@ -1,6 +1,6 @@
 # FOA Direction-of-Arrival Estimator
 
-A multi-layer perceptron (MLP) for estimating sound source direction from First-Order Ambisonics (FOA) recordings. Given 12 acoustic features extracted from a short FOA window, the model jointly predicts azimuth sector, elevation class, and diffuseness class.
+A multi-layer perceptron (MLP) for estimating sound source direction from First-Order Ambisonics (FOA) recordings. Given 12 acoustic features extracted from a short FOA window, the model jointly predicts azimuth sector, elevation class, and diffuseness class. The model was trained on a custom-made Ambix dataset — and intended for real-time audio applications within the MaxMSP environment. 
 
 ## Model outputs
 
