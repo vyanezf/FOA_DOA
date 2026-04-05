@@ -26,39 +26,70 @@ A multi-layer perceptron (MLP) for estimating sound source direction from First-
 │   └── nn7.gendsp          # Max/MSP gen~ patch for real-time feature computation
 ```
 
-## Audio dataset
+## Workflow overview
 
-The raw wav files (~3 GB) are hosted on Zenodo: https://zenodo.org/records/19432242
+There are three independent use cases. **You do not need to complete all of them** — start from whichever step suits your goal:
 
-Download and unzip into the repo root so the folder structure matches:
+```
+[Raw audio] ──(1)──▶ [Feature CSVs] ──(2)──▶ [model.pt] ──(3)──▶ [FOAPred.ts] ──▶ Max/MSP
+                          ↑                        ↑                    ↑
+                    already in repo          skip if using         already in
+                    (step 1 optional)        Max/FOAPred.ts         Max/ folder
+```
+
+| Step | What it does | Files needed | Can you skip it? |
+|---|---|---|---|
+| 1. Feature extraction | Compute features from raw wavs | Raw audio from Zenodo | ✅ Yes — CSVs already in `features/` |
+| 2. Training | Train the MLP | `features/` CSVs | ✅ Yes — use the pre-exported `Max/FOAPred.ts` directly |
+| 3. Export | Convert `model.pt` → `FOAPred.ts` for Max | `model.pt` (from step 2) | ✅ Yes — `Max/FOAPred.ts` is ready to use |
+
+---
+
+## Setup
+
+Install Python dependencies based on the steps you intend to run:
+
+```bash
+# Steps 1 + 2 (feature extraction and/or training)
+pip install torch numpy pandas scikit-learn soundfile tqdm
+
+# Step 3 only (export to TorchScript)
+pip install torch nn_tilde
+```
+
+---
+
+## Step 1 — Feature extraction _(optional)_
+
+Only needed if you want to re-extract features from the raw audio.
+
+Download the raw wav files from Zenodo: https://zenodo.org/records/19432242  
+Unzip into the repo root so the structure is:
 
 ```
 Files/
   elev0/
   elev40/
   elev75/
-  elev0dry/  (or elevzerodry)
+  elev0dry/
 ```
 
-The wav files are only needed to re-run feature extraction. Training works directly from the pre-extracted `features/` CSVs.
-
-## Setup
-
+Then run:
 ```bash
-pip install torch numpy pandas scikit-learn soundfile tqdm
+python feature_extractor.py metadata/index.csv --out_dir features
 ```
 
-For the nn~ wrapper:
-```bash
-pip install nn_tilde
-```
+This overwrites the CSVs in `features/` with freshly computed values.
 
-## Usage
+---
 
-### Train
+## Step 2 — Training _(optional)_
+
+Trains directly from the pre-extracted feature CSVs — **no audio files needed**.
+
 ```bash
 python model.py
-# Saves model.pt on best validation performance
+# Saves model.pt whenever validation performance improves
 ```
 
 Key arguments:
@@ -71,23 +102,34 @@ Key arguments:
 --out_ckpt         Output checkpoint path       (default: model.pt)
 ```
 
-### Extract features (optional — only if re-running from raw audio)
-```bash
-python feature_extractor.py metadata/index.csv --out_dir features
-```
+---
 
-### Export for nn~ (Max/MSP)
+## Step 3 — Export for Max/MSP _(optional)_
+
+Only needed if you retrained the model and want to deploy your own `model.pt`.  
+**A ready-to-use `FOAPred.ts` is already included in the `Max/` folder.**
+
 ```bash
 python wrapper.py -c model.pt -o FOAPred.ts
 ```
-Then load in Max with `[nn~ FOAPred forward]`. A ready-to-use exported model and example patch are included in the `Max/` folder.
 
-> **Important:** Place `FOAPred.ts` in the nn_tilde models directory for Max to find it:
->
-> | OS | Path |
-> |---|---|
-> | macOS | `~/Documents/Max 9/Packages/nn_tilde/models/` |
-> | Windows | `C:\Users\<username>\Documents\Max 9\Packages\nn_tilde\models\` |
+Place the resulting `FOAPred.ts` in the nn_tilde models directory:
+
+| OS | Path |
+|---|---|
+| macOS | `~/Documents/Max 9/Packages/nn_tilde/models/` |
+| Windows | `C:\Users\<username>\Documents\Max 9\Packages\nn_tilde\models\` |
+
+---
+
+## Using in Max/MSP
+
+Open `Max/Example.maxpat`. The patch expects a **live First-Order Ambisonics stream in AmbiX format** (channel order: W, X, Y, Z) at 48 kHz as input. The `nn7.gendsp` gen~ subpatcher computes the 12 acoustic features in real time and feeds them into `[nn~ FOAPred forward]`, which outputs 18 prediction values (12 azimuth + 3 elevation + 3 diffuseness logits).
+
+Load the model with:
+```
+[nn~ FOAPred forward]
+```
 
 
 ## Inputs and features
