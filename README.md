@@ -20,6 +20,10 @@ A multi-layer perceptron (MLP) for estimating sound source direction from First-
 ├── features/
 │   ├── index.csv           # Master index linking feature CSVs to wav files and labels
 │   └── *.csv               # Pre-extracted features (one file per recording)
+├── Max/
+│   ├── Example.maxpat      # Example Max patch using nn~ with the exported model
+│   ├── FOAPred.ts          # Pre-exported TorchScript model (ready to use)
+│   └── nn7.gendsp          # gen~ patch used inside the example patch
 ```
 
 ## Audio dataset
@@ -76,7 +80,15 @@ python feature_extractor.py metadata/index.csv --out_dir features
 ```bash
 python wrapper.py -c model.pt -o FOAPred.ts
 ```
-Then load in Max with `[nn~ FOAPred forward]`.
+Then load in Max with `[nn~ FOAPred forward]`. A ready-to-use exported model and example patch are included in the `Max/` folder.
+
+> **Important:** Place `FOAPred.ts` in the nn_tilde models directory for Max to find it:
+>
+> | OS | Path |
+> |---|---|
+> | macOS | `~/Documents/Max 9/Packages/nn_tilde/models/` |
+> | Windows | `C:\Users\<username>\Documents\Max 9\Packages\nn_tilde\models\` |
+
 
 ## Inputs and features
 
