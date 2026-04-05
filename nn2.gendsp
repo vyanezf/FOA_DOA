@@ -1,0 +1,338 @@
+{
+	"patcher" : 	{
+		"fileversion" : 1,
+		"appversion" : 		{
+			"major" : 9,
+			"minor" : 0,
+			"revision" : 8,
+			"architecture" : "x64",
+			"modernui" : 1
+		}
+,
+		"classnamespace" : "dsp.gen",
+		"rect" : [ 882.0, 125.0, 1289.0, 756.0 ],
+		"gridsize" : [ 15.0, 15.0 ],
+		"boxes" : [ 			{
+				"box" : 				{
+					"code" : "// foa_features.genexpr\n\n// 2-second window at 48 kHz\nParam win_len(48000/2); // original was * 2\n\n// ------------------------------------------------------------------\n// histories for counts & sums (reset *individually* at window end)\nHistory cnt(0);\n\n// for mean/std of directional cosines\nHistory bx(0), bx2(0);\nHistory by(0), by2(0);\nHistory bz(0), bz2(0);\n\n// for windowed RMS of each FOA channel\nHistory sumW2(0), sumX2(0), sumY2(0), sumZ2(0);\n\n// stash last window’s outputs so outlets always drive something\nHistory f1(0),  f2(0),  f3(0),  f4(0),  \n        f5(0),  f6(0),  f7(0),  f8(0),  \n        f9(0), f10(0), f11(0), f12(0);\n\n// ------------------------------------------------------------------\n// audio inlets: raw FOA\nin1;    // W\nin2;    // Y\nin3;    // Z\nin4;    // X\n\n// ------------------------------------------------------------------\n// 1) instantaneous intensity vector I = W·[X,Y,Z]\nIx = in1 * in4;\nIy = in1 * in2;\nIz = in1 * in3;\n\n// magnitude |I| (avoid division by zero)\nMagI = sqrt(Ix*Ix + Iy*Iy + Iz*Iz) + 1e-12;\n\n// normalized directional cosines\nux = Ix / MagI;\nuy = Iy / MagI;\nuz = Iz / MagI;\n\n// 2) accumulate for mean/std of ux,uy,uz\nbx  += ux;     bx2 += ux*ux;\nby  += uy;     by2 += uy*uy;\nbz  += uz;     bz2 += uz*uz;\n\n// 3) accumulate for windowed RMS of raw FOA channels\nsumW2 += in1*in1;\nsumX2 += in4*in4;\nsumY2 += in2*in2;\nsumZ2 += in3*in3;\n\n// 4) sample counter\ncnt += 1;\n\n// ------------------------------------------------------------------\n// once per window → compute & stash\nif (cnt >= win_len) {\n    // directional means\n    mean_x = bx / cnt;\n    mean_y = by / cnt;\n    mean_z = bz / cnt;\n\n    // directional stddevs (clamp negative‐roundoff to zero)\n    var_x = bx2/cnt - mean_x*mean_x;  std_x = sqrt(max(var_x,0));\n    var_y = by2/cnt - mean_y*mean_y;  std_y = sqrt(max(var_y,0));\n    var_z = bz2/cnt - mean_z*mean_z;  std_z = sqrt(max(var_z,0));\n\n    // vector strength R = |⟨u⟩|\n    R = sqrt(mean_x*mean_x + mean_y*mean_y + mean_z*mean_z);\n\n    // windowed RMS (linear) and avoid zero\n    rmsW = sqrt(sumW2/cnt) + 1e-12;\n    rmsX = sqrt(sumX2/cnt) + 1e-12;\n    rmsY = sqrt(sumY2/cnt) + 1e-12;\n    rmsZ = sqrt(sumZ2/cnt) + 1e-12;\n\n    // log‐RMS + ratios\n    log_rmsW = log(rmsW + 1);\n    rX_ratio = rmsX / rmsW;\n    rY_ratio = rmsY / rmsW;\n    rZ_ratio = rmsZ / rmsW;\n\n    // diffuseness ψ = 1 − R\n    psi = clamp(1.0 - R, 0, 1);\n\n    // stash into histories so outlets never go silent\n    f1  = mean_x;    f2  = mean_y;    f3  = mean_z;\n    f4  = std_x;     f5  = std_y;     f6  = std_z;\n    f7  = R;         f8  = log_rmsW;\n    f9  = rX_ratio;  f10 = rY_ratio;\n    f11 = rZ_ratio;  f12 = psi;\n\n    // reset *each* accumulator individually\n    cnt      = 0;\n    bx       = 0;   bx2      = 0;\n    by       = 0;   by2      = 0;\n    bz       = 0;   bz2      = 0;\n    sumW2    = 0;\n    sumX2    = 0;\n    sumY2    = 0;\n    sumZ2    = 0;\n}\n\n// ------------------------------------------------------------------\n// continuously drive 12 outlets\nout1  = f1;    out2  = f2;    out3  = f3;    out4  = f4;\nout5  = f5;    out6  = f6;    out7  = f7;    out8  = f8;\nout9  = f9;   out10 = f10;   out11 = f11;   out12 = f12;",
+					"fontface" : 0,
+					"fontname" : "<Monospaced>",
+					"fontsize" : 12.0,
+					"id" : "obj-31",
+					"maxclass" : "codebox",
+					"numinlets" : 4,
+					"numoutlets" : 12,
+					"outlettype" : [ "", "", "", "", "", "", "", "", "", "", "", "" ],
+					"patching_rect" : [ 128.0, 118.0, 823.0, 406.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-15",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 707.0, -26.0, 28.0, 22.0 ],
+					"text" : "in 4"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-13",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 881.0, 595.0, 39.0, 35.0 ],
+					"text" : "out 12"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-14",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 652.0, 600.0, 38.0, 35.0 ],
+					"text" : "out 11"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-4",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 572.0, 591.0, 39.0, 35.0 ],
+					"text" : "out 10"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-3",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 510.0, 591.0, 32.0, 35.0 ],
+					"text" : "out 9"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-26",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 468.0, 591.0, 32.0, 35.0 ],
+					"text" : "out 8"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-25",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 425.0, 600.0, 32.0, 35.0 ],
+					"text" : "out 7"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-24",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 383.0, 600.0, 32.0, 35.0 ],
+					"text" : "out 6"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-23",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 340.0, 600.0, 32.0, 35.0 ],
+					"text" : "out 5"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-22",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 298.0, 600.0, 32.0, 35.0 ],
+					"text" : "out 4"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-21",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 255.0, 600.0, 32.0, 35.0 ],
+					"text" : "out 3"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-20",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 213.0, 600.0, 32.0, 35.0 ],
+					"text" : "out 2"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-19",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 170.0, 600.0, 32.0, 35.0 ],
+					"text" : "out 1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-8",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 611.0, -46.0, 28.0, 22.0 ],
+					"text" : "in 3"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-7",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 220.0, -26.0, 28.0, 22.0 ],
+					"text" : "in 2"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-6",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 47.0, -4.0, 28.0, 22.0 ],
+					"text" : "in 1"
+				}
+
+			}
+ ],
+		"lines" : [ 			{
+				"patchline" : 				{
+					"destination" : [ "obj-31", 3 ],
+					"source" : [ "obj-15", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-13", 0 ],
+					"source" : [ "obj-31", 11 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-14", 0 ],
+					"source" : [ "obj-31", 10 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-19", 0 ],
+					"source" : [ "obj-31", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-20", 0 ],
+					"source" : [ "obj-31", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-21", 0 ],
+					"source" : [ "obj-31", 2 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-22", 0 ],
+					"source" : [ "obj-31", 3 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-23", 0 ],
+					"source" : [ "obj-31", 4 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-24", 0 ],
+					"source" : [ "obj-31", 5 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-25", 0 ],
+					"source" : [ "obj-31", 6 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-26", 0 ],
+					"source" : [ "obj-31", 7 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-3", 0 ],
+					"source" : [ "obj-31", 8 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-4", 0 ],
+					"source" : [ "obj-31", 9 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-31", 0 ],
+					"source" : [ "obj-6", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-31", 1 ],
+					"source" : [ "obj-7", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-31", 2 ],
+					"source" : [ "obj-8", 0 ]
+				}
+
+			}
+ ]
+	}
+
+}

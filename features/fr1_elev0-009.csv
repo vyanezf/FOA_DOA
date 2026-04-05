@@ -1,0 +1,2 @@
+mean_x,mean_y,mean_z,std_x,std_y,std_z,R,log_rmsW,rX_ratio,rY_ratio,rZ_ratio,psi,elev_normalized,elev_sin,elev_cos,is_synthetic,time_s,azimuth_deg,az_sector,elev_class,psi_cls
+-0.333137,-0.147376,0.057292,0.678407,0.511786,0.376639,0.368758,0.06123,0.70544,0.374859,0.21828,0.631242,0.0,0.0,1.0,0.0,1.941333,-158.478923,6.0,2,0
