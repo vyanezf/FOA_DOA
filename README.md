@@ -24,7 +24,9 @@ A multi-layer perceptron (MLP) for estimating sound source direction from First-
 
 ## Audio dataset
 
-The raw wav files (~3 GB) are hosted on Zenodo. Download and unzip into the repo root so the folder structure matches:
+The raw wav files (~3 GB) are hosted on Zenodo: https://zenodo.org/records/19432242
+
+Download and unzip into the repo root so the folder structure matches:
 
 ```
 Files/
