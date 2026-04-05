@@ -16,14 +16,14 @@ A multi-layer perceptron (MLP) for estimating sound source direction from First-
 ├── model.py                # MLP architecture, dataset, and training loop
 ├── feature_extractor.py    # Extracts 12 FOA features from wav files → features/
 ├── wrapper.py              # Exports the trained model as a TorchScript file for nn~
-├── nn2.gendsp              # Max/MSP gen~ patch for real-time feature computation
+
 ├── features/
 │   ├── index.csv           # Master index linking feature CSVs to wav files and labels
 │   └── *.csv               # Pre-extracted features (one file per recording)
 ├── Max/
 │   ├── Example.maxpat      # Example Max patch using nn~ with the exported model
 │   ├── FOAPred.ts          # Pre-exported TorchScript model (ready to use)
-│   └── nn7.gendsp          # gen~ patch used inside the example patch
+│   └── nn7.gendsp          # Max/MSP gen~ patch for real-time feature computation
 ```
 
 ## Audio dataset
