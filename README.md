@@ -58,10 +58,9 @@ pip install torch numpy pandas scikit-learn soundfile tqdm
 pip install torch nn_tilde
 ```
 2- For using inside MaxMSP, **you must install**:
-```
-nn~ : https://forum.ircam.fr/projects/detail/nn/
 
-```
+`nn~` : https://forum.ircam.fr/projects/detail/nn/
+
 ---
 
 ## Step 1 — Feature extraction (optional)
