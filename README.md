@@ -48,7 +48,7 @@ There are three independent use cases. **You do not need to go over them unless 
 
 ## Setup
 
-Install Python dependencies based on the steps you intend to run:
+1- Install Python dependencies based on the steps you intend to run:
 
 ```bash
 # Steps 1 + 2 (feature extraction and/or training)
@@ -57,7 +57,11 @@ pip install torch numpy pandas scikit-learn soundfile tqdm
 # Step 3 only (export to TorchScript)
 pip install torch nn_tilde
 ```
+2- For use in MaxMSP, **you must install**:
+```
+nn~ : https://forum.ircam.fr/projects/detail/nn/
 
+```
 ---
 
 ## Step 1 — Feature extraction (optional)
