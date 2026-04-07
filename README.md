@@ -1,6 +1,6 @@
 # FOA Direction-of-Arrival Estimator for MaxMsp Deployment
 
-A multi-layer perceptron (MLP) for estimating sound source direction from First-Order Ambisonics (FOA) stream. Given 12 features extracted from short FOA windows, the model jointly predicts — as discrete classes — azimuth, elevation, and diffuseness . The intended application is for deployment within a MaxMSP/Spat5 environment, using the `nn~` object. 
+A multi-layer perceptron (MLP) for estimating sound source direction from a First-Order Ambisonics (FOA) stream. Given 12 features extracted from short FOA windows, the model jointly predicts — as discrete classes — azimuth, elevation, and diffuseness. The intended application is deployment within a Max/MSP and Spat5 environment, using the `nn~` object. 
 
 ## Model outputs
 
@@ -24,7 +24,7 @@ A multi-layer perceptron (MLP) for estimating sound source direction from First-
 │   ├── Example.maxpat      # Example Max patch using nn~ with the exported model
 │   ├── FOAPred.ts          # Pre-exported TorchScript model (ready to use)
 │   └── nn7.gendsp          # Max/MSP gen~ patch for real-time feature computation
-├── DOAModelDoc.pdf/       # Documentation of the research
+├── DOAModelDoc.pdf         # Documentation of the research
 ```
 
 ## Workflow overview for training on Ambix files
@@ -147,7 +147,7 @@ The model takes 12 features computed from a 2-second FOA window (W, Y, Z, X chan
 | `psi` | Diffuseness estimate (1 − R) |
 
 
-These features populate the CSV files when using the `feature_extraction.py` — and are computed in real time by the `gen~` subpatch (see `Max/Example.maxpat`). Thus, the deployed model receives the same information structure. 
+These features populate the CSV files when using `feature_extractor.py` — and are computed in real time by the `gen~` subpatch (see `Max/Example.maxpat`). The deployed model therefore receives the same feature structure in both training and inference. 
 
 ## Model architecture
 
@@ -155,8 +155,8 @@ Five fully-connected hidden layers (512 → 512 → 4096 → 4096 → 512) with 
 
 ## Spat5 integration
 
-The higher logit number for each label is the model's predicton. Highly recommend referring to /Max/Example, for a simple structure of a pipeline.
-After this stage, it is easy to assing polar cordinates to the classes predicted. 
+The highest logit value for each head is the model's prediction. It is recommended to refer to `Max/Example.maxpat` for a simple pipeline structure.
+From this stage, it is straightforward to assign polar coordinates to the predicted classes. 
 The model's prediction has the following output:
 
 
@@ -171,15 +171,15 @@ The `/Max/Example.maxpat` shows how to map the model's output as polar coordinat
 | Angle | 0 | 40 | 75 |
 
 
-| Difussion class | 0 | 1 | 2 |
+| Diffuseness class | 0 | 1 | 2 |
 |---|---|---|---|
-| Clear directionality | High | Med | Low|
+| Directionality | High | Medium | Low |
 
 The `mc.snapshot` helps to sync and output a triad of classes, one per each label, so they can be listed and relayed as string format into Spat5. There are many suitable options, such as `coll` and/or `jit.matrix`.
 
 ## Implementation 
 
-This algorythm was implemented as part as artistic installation at Zwitschermaschine Berlin (DE). Full documentation is attached as `DOAModelDoc.pdf`.
+This algorithm was implemented as part of an artistic installation at Zwitschermaschine, Berlin (DE). Full documentation is attached as `DOAModelDoc.pdf`.
 Further info at www.vicenteyanez.com
 
 
