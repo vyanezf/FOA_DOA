@@ -158,18 +158,21 @@ The higher logit number for each label is the model's predicton. Highly recommen
 After this stage, it is easy to assing polar cordinates to the classes predicted. 
 The model's prediction has the following output:
 
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+
 | Azimuth class | 0 | 1 | 2 | 3| 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Angle | 0 | -30 | -60 | -90 | -120 | -150 | 180 | 150 | 120 | 90 | 60 | 30 |  
 
 The /Max/Example.maxpat shows how to map the model's output (including an offset on the azimuth stream) as polar coordinates, suited for Spat5 integration. 
 
-|---|---|---|---|
+
 | Elevation class | 0 | 1 | 2 |
+|---|---|---|---|
 | Angle | 0 | 40 | 75 |
 
-|---|---|---|---|
+
 | Difussion class | 0 | 1 | 2 |
+|---|---|---|---|
 | Clear directionality | High | Med | Low|
 
 
