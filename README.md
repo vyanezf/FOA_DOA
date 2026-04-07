@@ -27,7 +27,7 @@ A multi-layer perceptron (MLP) for estimating sound source direction from a Firs
 ├── DOAModelDoc.pdf         # Documentation of the research
 ```
 
-## Workflow overview for training on Ambix files
+## Workflow overview
 
 There are three independent use cases. **You do not need to go over them unless attempting to re-train** — start from whichever step suits your goal:
 
