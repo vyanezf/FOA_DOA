@@ -142,15 +142,15 @@ The model takes 12 features computed from a 2-second FOA window (W, Y, Z, X chan
 
 | Feature | Description |
 |---|---|
-| `mean_x/y/z` | Mean of normalised intensity vector components |
-| `std_x/y/z` | Std of normalised intensity vector components |
+| `mean_x/y/z` | Mean of direction components |
+| `std_x/y/z` | Standard deviation of direction components |
 | `R` | Resultant vector length (directional coherence) |
 | `log_rmsW` | Log RMS of the W channel |
 | `rX/Y/Z_ratio` | RMS ratio of X/Y/Z to W |
 | `psi` | Diffuseness estimate (1 − R) |
 
 
-These features populate the CSV files when using `feature_extractor.py` — and are computed in real time by the `gen~` subpatch (see `Max/Example.maxpat`). The deployed model therefore receives the same feature structure in both training and inference. 
+These features populate the CSV files when using `feature_extractor.py` — and are computed in real time by the `gen~` subpatch (see `Max/Example.maxpat`). The deployed model therefore receives the same feature structure in both training and inference. More detailed description of the vectors can be found on the `DOAModelDoc.pdf`.
 
 ## Model architecture
 
