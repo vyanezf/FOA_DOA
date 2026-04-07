@@ -1,6 +1,6 @@
 # FOA Direction-of-Arrival Estimator for MaxMsp Deployment
 
-A multi-layer perceptron (MLP) for estimating sound source direction from First-Order Ambisonics (FOA) stream. Given 12 features extracted from short FOA windows, the model jointly predicts — as classes — an azimuth sector, elevation, and diffuseness. The intended application is for deployment within a MaxMSP/Spat5 environment, using the nn~ object. 
+A multi-layer perceptron (MLP) for estimating sound source direction from First-Order Ambisonics (FOA) stream. Given 12 features extracted from short FOA windows, the model jointly predicts — as discrete classes — azimuth, elevation, and diffuseness . The intended application is for deployment within a MaxMSP/Spat5 environment, using the nn~ object. 
 
 ## Model outputs
 
@@ -163,8 +163,7 @@ The model's prediction has the following output:
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Angle | 0 | -30 | -60 | -90 | -120 | -150 | 180 | 150 | 120 | 90 | 60 | 30 |  
 
-The /Max/Example.maxpat shows how to map the model's output (including an offset on the azimuth stream) as polar coordinates, suited for Spat5 integration. 
-
+The /Max/Example.maxpat shows how to map the model's output as polar coordinates, suited for Spat5 integration. 
 
 | Elevation class | 0 | 1 | 2 |
 |---|---|---|---|
@@ -174,5 +173,7 @@ The /Max/Example.maxpat shows how to map the model's output (including an offset
 | Difussion class | 0 | 1 | 2 |
 |---|---|---|---|
 | Clear directionality | High | Med | Low|
+
+The `mc.snapshot` helps to output a triad of values, one per each label, so they can be listed and relayed in string format. There are many suitable options, such as `coll` or `jit.matrix`. 
 
 
