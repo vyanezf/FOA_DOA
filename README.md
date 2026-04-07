@@ -1,21 +1,21 @@
-# FOA Direction-of-Arrival Estimator
+# FOA Direction-of-Arrival Estimator for MaxMsp Deployment
 
-A multi-layer perceptron (MLP) for estimating sound source direction from First-Order Ambisonics (FOA) recordings. Given 12 acoustic features extracted from a short FOA window, the model jointly predicts azimuth sector, elevation class, and diffuseness class. The model was trained on a custom-made Ambix dataset — and intended for real-time audio applications within the MaxMSP environment. 
+A multi-layer perceptron (MLP) for estimating sound source direction from First-Order Ambisonics (FOA) stream. Given 12 features extracted from short FOA windows, the model jointly predicts — as classes — an azimuth sector, elevation, and diffuseness. The intended application is for deployment within a MaxMSP/Spat5 environment, using the nn~ object. 
 
 ## Model outputs
 
 | Head | Classes | Description |
 |---|---|---|
 | Azimuth | 12 | 30° sectors covering 0–360° |
-| Elevation | 3 | Low / mid / high |
+| Elevation | 3 | 0º / 40 / 75º |
 | Diffuseness (ψ) | 3 | Low / medium / high |
 
 ## Repository structure
 
 ```
-├── model.py                # MLP architecture, dataset, and training loop
-├── feature_extractor.py    # Extracts 12 FOA features from wav files → features/
-├── wrapper.py              # Exports the trained model as a TorchScript file for nn~
+├── model.py                # MLP architecture and training loop
+├── feature_extractor.py    # Extracts 12 FOA features from wav files, mapped to the downloadable /Files/ folder, extracts into /features
+├── wrapper.py              # Exports the trained model as a TorchScript file for Ircam's nn~ object
 
 ├── features/
 │   ├── index.csv           # Master index linking feature CSVs to wav files and labels
@@ -28,20 +28,20 @@ A multi-layer perceptron (MLP) for estimating sound source direction from First-
 
 ## Workflow overview for training on Ambix files
 
-There are three independent use cases. **You do not need to complete all of them** — start from whichever step suits your goal:
+There are three independent use cases. **You do not need to go over them unless attempting to re-train** — start from whichever step suits your goal:
 
 ```
 [Ambix FOA stream] ──(1)──▶ [Feature CSVs] ──(2)──▶ [model.pt] ──(3)──▶ [FOAPred.ts] ──▶ Max/MSP
                           ↑                        ↑                    ↑
                     already in repo          skip if using         already in
-                    (step 1 optional)        Max/FOAPred.ts         Max/ folder
+                    (step 1 optional)        model.pt              Max/ folder
 ```
-
+                    
 | Step | What it does | Files needed | Can you skip it? |
 |---|---|---|---|
-| 1. Feature extraction | Compute features from raw wavs | Raw audio from Zenodo | ✅ Yes — CSVs already in `features/` |
-| 2. Training | Train the MLP | `features/` CSVs | ✅ Yes — use the pre-exported `Max/FOAPred.ts` directly |
-| 3. Export | Convert `model.pt` → `FOAPred.ts` for Max | `model.pt` (from step 2) | ✅ Yes — `Max/FOAPred.ts` is ready to use |
+| 1. Feature extraction | Compute features from Ambix files | Files from Zenodo link | Yes, if not using other FOA wav files — CSVs already in `features/` |
+| 2. Training | Train the MLP | `features/` CSVs | Yes, if you don't intend to change the architecture or the loss function — use the pre-exported `model.pt` directly |
+| 3. Export | Convert `model.pt` → `FOAPred.ts` for Max | `model.pt` (from step 2) | Yes, if you didn't perform step 1 or 2 — `Max/FOAPred.ts` is ready to use |
 
 ---
 
@@ -59,11 +59,11 @@ pip install torch nn_tilde
 
 ---
 
-## Step 1 — Feature extraction _(optional)_
+## Step 1 — Feature extraction (optional)
 
-Only needed if you want to re-extract features from the raw audio.
+Only needed if you want to re-extract features from the Ambix files, or to try it on other FOA files.
 
-Download the raw wav files from Zenodo: https://zenodo.org/records/19432242  
+Download the wav files from Zenodo: https://zenodo.org/records/19432242  
 Unzip into the repo root so the structure is:
 
 ```
@@ -83,7 +83,7 @@ This overwrites the CSVs in `features/` with freshly computed values.
 
 ---
 
-## Step 2 — Training on the Dataset_(optional)_
+## Step 2 — Training (optional)
 
 Trains directly from the pre-extracted feature CSVs — **no audio files needed**.
 
@@ -104,7 +104,7 @@ Key arguments:
 
 ---
 
-## Step 3 — Export for Max/MSP _(optional)_
+## Step 3 — Export for Max/MSP (optional)
 
 Only needed if you retrained the model and want to deploy your own `model.pt`.  
 **A ready-to-use `FOAPred.ts` is already included in the `Max/` folder.**
@@ -113,7 +113,7 @@ Only needed if you retrained the model and want to deploy your own `model.pt`.
 python wrapper.py -c model.pt -o FOAPred.ts
 ```
 
-Place the resulting `FOAPred.ts` in the nn_tilde models directory:
+**Place the resulting `FOAPred.ts` in the nn_tilde models directory:**
 
 | OS | Path |
 |---|---|
@@ -145,6 +145,31 @@ The model takes 12 features computed from a 2-second FOA window (W, Y, Z, X chan
 | `rX/Y/Z_ratio` | RMS ratio of X/Y/Z to W |
 | `psi` | Diffuseness estimate (1 − R) |
 
+
+These features populate the CSV files when using the feature_extraction.py — and are computed in real time by the gen~ object (see Max/Example). Thus, the deployed model receives the same information structure. 
+
 ## Model architecture
 
 Five fully-connected hidden layers (512 → 512 → 4096 → 4096 → 512) with ReLU activations and dropout, followed by three output heads (azimuth, elevation, diffuseness). Training uses class-balanced cross-entropy with an angular deviation penalty on the azimuth head.
+
+## Spat5 integration
+
+The higher logit number for each label is the model's predicton. Highly recommend referring to /Max/Example, for a simple structure of a pipeline.
+After this stage, it is easy to assing polar cordinates to the classes predicted. 
+The model's prediction has the following output:
+
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Azimuth class | 0 | 1 | 2 | 3| 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
+| Angle | 0 | -30 | -60 | -90 | -120 | -150 | 180 | 150 | 120 | 90 | 60 | 30 |  
+
+The /Max/Example.maxpat shows how to map the model's output (including an offset on the azimuth stream) as polar coordinates, suited for Spat5 integration. 
+
+|---|---|---|---|
+| Elevation class | 0 | 1 | 2 |
+| Angle | 0 | 40 | 75 |
+
+|---|---|---|---|
+| Difussion class | 0 | 1 | 2 |
+| Clear directionality | High | Med | Low|
+
+
